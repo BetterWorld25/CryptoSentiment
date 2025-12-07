@@ -135,7 +135,7 @@ def add_reddit_sentiment(df):
     return df
 
 # ALPHA VANTAGE (SP500, GOLD, USD INDEX)
-API_KEY = "ALPHAVANTAGE_API_KEY"
+API_KEY = os.getenv("ALPHAVANTAGE_API_KEY", "")
 
 def get_global_quote(symbol):
     try:
@@ -186,4 +186,5 @@ with open("run_log.txt", "a", encoding="utf-8") as f:
     )
 
 print("Logged run")
+
 
