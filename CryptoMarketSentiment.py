@@ -1,20 +1,20 @@
-# WINDOWS ASYNCIO FIX
+# 1. WINDOWS ASYNCIO FIX
 import asyncio
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-# IMPORTS
+# 2. IMPORTS
 from pycoingecko import CoinGeckoAPI
 from datetime import datetime, timezone
 import pandas as pd, numpy as np, requests, os, time
 from pytrends.request import TrendReq
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-# INITIALIZE APIS
+# 3. INITIALIZE APIS
 cg = CoinGeckoAPI()
 pytrends = TrendReq(hl="en-US", tz=0)
 analyzer = SentimentIntensityAnalyzer()
 
-# RSI FUNCTION
+# 4. RSI FUNCTION
 def compute_rsi(series, window=14):
     delta = series.diff()
     gain = delta.clip(lower=0)
@@ -24,7 +24,7 @@ def compute_rsi(series, window=14):
     rs = avg_gain / avg_loss
     return 100 - (100 / (1 + rs))
 
-# FETCH COIN DATA
+# 5. FETCH COIN DATA
 def fetch_top10_data():
     rows = []
     top10 = cg.get_coins_markets(vs_currency="usd", per_page=10)
@@ -62,7 +62,7 @@ def fetch_top10_data():
 
     return pd.DataFrame(rows)
 
-# GOOGLE TRENDS
+# 6. GOOGLE TRENDS
 def add_google_trends(df):
     try:
         pytrends.build_payload(["Bitcoin", "Ethereum"], timeframe="now 4-H")
@@ -74,8 +74,8 @@ def add_google_trends(df):
             df["google_trend_eth"] = np.nan
         else:
             last = tdf.iloc[-1]
-            df["google_trend_btc"] = last["Bitcoin"]
-            df["google_trend_eth"] = last["Ethereum"]
+            df["google_trend_btc"] = last.get("Bitcoin", np.nan)
+            df["google_trend_eth"] = last.get("Ethereum", np.nan)
 
     except Exception as e:
         print("Google Trends error:", e)
@@ -84,7 +84,7 @@ def add_google_trends(df):
 
     return df
 
-# FEAR & GREED INDEX
+# 7. FEAR & GREED INDEX
 def add_fear_greed(df):
     try:
         fg = requests.get("https://api.alternative.me/fng/").json()
@@ -93,7 +93,7 @@ def add_fear_greed(df):
         df["fear_greed_index"] = np.nan
     return df
 
-# REDDIT SENTIMENT
+# 8. REDDIT SENTIMENT
 def add_reddit_sentiment(df):
     try:
         time.sleep(2)
@@ -134,25 +134,40 @@ def add_reddit_sentiment(df):
 
     return df
 
-# ALPHA VANTAGE (SP500, GOLD, USD INDEX)
+# 9. ALPHA VANTAGE
 API_KEY = os.getenv("ALPHAVANTAGE_API_KEY", "")
 
 def get_global_quote(symbol):
     try:
         url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={API_KEY}"
         data = requests.get(url).json()
+
+        # prevent KeyError
+        if "Global Quote" not in data or "05. price" not in data["Global Quote"]:
+            return np.nan
+
         return float(data["Global Quote"]["05. price"])
-    except:
+
+    except Exception:
         return np.nan
+
 
 def get_usd_index():
     try:
         url = f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=EUR&apikey={API_KEY}"
         data = requests.get(url).json()
+
+        # prevent KeyError
+        if "Realtime Currency Exchange Rate" not in data or \
+           "5. Exchange Rate" not in data["Realtime Currency Exchange Rate"]:
+            return np.nan
+
         rate = float(data["Realtime Currency Exchange Rate"]["5. Exchange Rate"])
         return (1 / rate) * 100
-    except:
+
+    except Exception:
         return np.nan
+
 
 def add_macro(df):
     df["SP500"] = get_global_quote("SPY")
@@ -160,31 +175,34 @@ def add_macro(df):
     df["USD_Index"] = get_usd_index()
     return df
 
-# MAIN
+# 10. MAIN EXECUTION
 df = fetch_top10_data()
 df = add_google_trends(df)
 df = add_fear_greed(df)
 df = add_reddit_sentiment(df)
 df = add_macro(df)
 
-# SAVE RESULTS
+# 11. SAVE RESULTS
 file = "crypto_hourly.csv"
+
+df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
 
 if os.path.exists(file):
     old = pd.read_csv(file)
+    old["timestamp"] = pd.to_datetime(old["timestamp"], errors="coerce")
+
     combined = pd.concat([old, df]).drop_duplicates(subset=["coin", "timestamp"])
     combined.to_csv(file, index=False)
+
 else:
     df.to_csv(file, index=False)
 
 print("Data saved at", datetime.utcnow())
 
-# LOG
+# 12. LOG
 with open("run_log.txt", "a", encoding="utf-8") as f:
     f.write(
         f"[{datetime.utcnow()}] Hourly crypto data collected. Rows added: {len(df)}\n"
     )
 
 print("Logged run")
-
-
