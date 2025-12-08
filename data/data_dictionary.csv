@@ -1,0 +1,17 @@
+column_name,type,source,description
+timestamp,datetime,Script Generated,UTC timestamp when this row of data was collected
+coin,string,CoinGecko,"Unique asset ID from CoinGecko (e.g., bitcoin, ethereum)"
+price,float,CoinGecko,Current market price of the coin in USD
+change_24h_%,float,CoinGecko,Percentage change in price over the last 24 hours
+volume_24h,float,CoinGecko,Total trading volume in USD over the last 24 hours
+market_cap,float,CoinGecko,Current total market capitalization of the coin in USD
+rsi,float,Technical Indicator,14-period Relative Strength Index computed from intraday data
+volatility,float,Technical Indicator,Rolling 14-period standard deviation of percentage returns
+sma_20,float,Technical Indicator,20-period Simple Moving Average of the coin's price
+google_trend_btc,float,Google Trends,Search interest score for the keyword 'Bitcoin' over the last 4 hours
+google_trend_eth,float,Google Trends,Search interest score for the keyword 'Ethereum' over the last 4 hours
+fear_greed_index,float,Alternative.me,"Crypto market sentiment index (0 = extreme fear, 100 = extreme greed)"
+reddit_sentiment,float,Reddit API + VADER,Average VADER compound sentiment score of top posts in r/CryptoCurrency (last hour)
+SP500,float,Alpha Vantage,Price proxy for the S&P 500 index (using SPY ETF)
+Gold,float,Alpha Vantage,Price proxy for gold (using GLD ETF)
+USD_Index,float,Alpha Vantage,Simple USD index calculated as (1 / USD-to-EUR exchange rate) * 100
