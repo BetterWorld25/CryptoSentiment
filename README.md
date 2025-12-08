@@ -179,12 +179,11 @@ Dataset is for **education and research only**, not for financial decision-makin
 CryptoSentiment/
 │
 ├── crypto_data_acquisition.py
-├── crypto_hourly.csv
-├── run_log.txt
 │
 ├── data/
 │   ├── data_dictionary.csv
 │   └── sample_crypto_hourly.csv
+│   └── crypto_hourly.csv
 │
 ├── requirements.txt
 └── README.md
