@@ -210,6 +210,5 @@ CryptoSentiment/
 
 ## 12. License & Acknowledgments
 
-For educational use only.
-
-APIs used: CoinGecko, Reddit, Google Trends, Alternative.me, Alpha Vantage.
+Code in this repository is released under the MIT License.
+Data generated using this code is for educational and academic use only, and must comply with the terms of upstream APIs (CoinGecko, Reddit, Google Trends, Alpha Vantage, etc.).
